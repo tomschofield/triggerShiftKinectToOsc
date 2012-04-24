@@ -1,3 +1,31 @@
+/*
+ 
+ cc tom schofield 2012
+ This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+ 
+ I acknowledge the following code libraries
+ oxOpenNI, 
+ Copyright 2011 (c) Matthew Gingold http://gingold.com.au
+ * Originally forked from a project by roxlu http://www.roxlu.com/ 
+ 
+ ofxOsc, 
+ Copyright (c) 2007-2009, Damian Stewart
+ All rights reserved
+ 
+ and osc message format to fit
+ osceleton https://github.com/Sensebloom/OSCeleton 
+ 
+ The above copyleft notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED ÒAS ISÓ, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYLEFT HOLDERS BE LIABLE FOR ANY CLAIM, 
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ DEALINGS IN THE SOFTWARE.
+ */
+
+
+
 #ifndef _TEST_APP
 #define _TEST_APP
 
@@ -41,10 +69,8 @@ public:
 	void	setupPlayback(string _filename);
 	string	generateFileName();
     
-    
-       void drawDebugInfo();
+    //returns vector of joint points and has a pointer to given vector of strings TODO - fix this ridiculous pointer approach
     vector<ofPoint> passJointInfo(ofxTrackedUser * aUser, vector<string> & jointNames,   int nUserNum);
-    //void passJointInfo(ofxTrackedUser * aUser, vector<ofPoint> * joints, int nUserNum);
     vector<ofPoint>     user1Joints;
     vector<string>      user1JointNames;
 
@@ -64,7 +90,7 @@ public:
 #else
 	ofxImageGenerator	image;
 #endif
-
+    //not currently used
 	ofxHandGenerator	handTracker;
 
 	ofxUserGenerator	user;

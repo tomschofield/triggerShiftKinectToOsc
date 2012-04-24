@@ -9,14 +9,14 @@ void testApp::setup() {
 	nearThreshold = 500;
 	farThreshold  = 1000;
     tilt=0;
-	setupOpenNI();
+	
+    setupOpenNI();
 
-	ofBackground(0, 0, 0);
-    //kGesture.setup(NUM_JOINTS);
+	   
     sender.setup( HOST, PORT );
     user.setUseCloudPoints(true);
     font.loadFont("Bangla Sangam MN.ttf", 24);
-   //user objects have their own set of joint info and gesture detection 
+   //user objects have their own set of joint info and gesture detection - this is kind of a redundancy but I wanted a light user object with just the stuff im interested in in it
     for(int i=0;i<NUM_USERS;i++){
         User tuser;
         tuser.setup();
@@ -45,12 +45,7 @@ void testApp::setupOpenNI() {
 	user.setMaxNumberOfUsers(7);					// use this to set dynamic max number of users (NB: that a hard upper limit is defined by MAX_NUMBER_USERS in ofxUserGenerator)
 	context.toggleRegisterViewport();
 	context.toggleMirror();
-    
-   // handTracker.setup(&context, 4);
-	//handTracker.setSmoothing(filterFactor);		// built in openni hand track smoothing...
-	//handTracker.setFilterFactors(filterFactor);	// custom smoothing/filtering (can also set per hand with setFilterFactor)...set them all to 0.1f to begin with
-
-
+   
 }
 
 //--------------------------------------------------------------
@@ -80,26 +75,9 @@ void testApp::update(){
                  //I had to hack around here to make sure we really really are tracking a skeleton - all the obvious flags inside the class seemed to be more like suggestions as to whether we are tracking or not :( TODO work this out
                 // cout<<" someUser->id "<<someUser->id<<endl;
                  if (someUser->skeletonTracking) {
-                     // cout<<"GOT USER NUMBER : "<<i<<endl;
-                     
-                     //send joint info via OSC
-                    // sendUserInfo(someUser, i);
-                     
-                     //send gesture states via OSC
-                    // for(int j=0;j<kGesture.gestureStates.size();j++){
-                     //    gestureOSCmessage(kGesture.gestureNames[j], kGesture.gestureStates[j]);
-                   // }
-                      
-                     //drawPointCloud(&user, someUser->id);
-                     //pass the joint info to the gesture detection class
-                     //kGesture.detect( passJointInfo(someUser, i));
-                     users[someUser->id].isAlive=true;
-                     //vector<ofPoint> points; 
-                     //passJointInfo(someUser, &points,  i);
-                     users[someUser->id].update(passJointInfo(someUser,users[someUser->id].jointNames,  i));
-                     
-                     //user1Joints.clear();
-                     //user1Joints=passJointInfo(someUser, i);
+                    users[someUser->id].isAlive=true;
+                    users[someUser->id].update(passJointInfo(someUser,users[someUser->id].jointNames,  i));
+                    
                  }
                
              }
@@ -112,8 +90,10 @@ void testApp::update(){
             allUserMasks.setFromPixels(user.getUserPixels(), user.getWidth(), user.getHeight(), OF_IMAGE_GRAYSCALE);
 			user1Mask.setFromPixels(user.getUserPixels(1), user.getWidth(), user.getHeight(), OF_IMAGE_GRAYSCALE);
 			user2Mask.setFromPixels(user.getUserPixels(2), user.getWidth(), user.getHeight(), OF_IMAGE_GRAYSCALE);
-//    for(int i=1;i<2;i++){
-    int userId=1;   
+
+    int userId=1;  
+    
+    //send all user joint and gesture info over osc
     for(int i=0;i<NUM_USERS;i++){
         if(users[i].isAlive){
             ofxOscMessage m;
@@ -135,18 +115,11 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-    //ofTranslate(300, 300);
-    //drawDebugInfo();
-   // ofTranslate(ofGetWidth()/2, ofGetHeight()/2);
+    ofBackground(0, 0, 0);
     for(int i=0;i<NUM_USERS;i++){
         users[i].draw();  
-       
     }
-    for(int i=1;i<NUM_USERS;i++){
-    drawPointCloud(&user, 1);
-    }
-    //user.draw();
-     
+  
 }
 
 void testApp:: drawMasks() {
@@ -173,46 +146,8 @@ void testApp::drawPointCloud(ofxUserGenerator * user_generator, int userID) {
 	
 
 	int step = 1;
-    /*vector<ofPoint>points;
-    points.clear();
-    for(int y = 0; y < h; y += step) {
-		for(int x = 0; x < w; x += step) {
-            ofPoint pos = user_generator->getWorldCoordinateAt(x, y, userID);
-            points.push_back(pos);
-            
-        }
-    }
-    ofPoint max=ofPoint(0,0,0);
-    ofPoint min=ofPoint(100000000,100000000,0);
-    // ofPoint
-    for(int i=0;i<points.size();i++){
-        if (points[i].x> max.x) {
-            max.x=points[i].x;
-        }
-        if (points[i].y> max.y) {
-            max.y=points[i].y;
-        }
-        if (points[i].x< min.x) {
-            min.x=points[i].x;
-        }
-        if (points[i].y< min.y) {
-            min.y=points[i].y;
-        }
-        
-    }
-    
-    
-    
-    ofPoint cloudCentre = ofPoint ( (0.5*(max.x-min.x)),(0.5*(max.y-min.y)),0);
-    */
-   // font.drawString(ofToString(cloudCentre), ofGetWidth()-200, 100);
-  //  ofTranslate((w/2), (h/2), 0);
-//	ofRotateY(pointCloudRotationY);
-  //  ofTranslate(-(w/2), -((h/2)), 0);
-    //ofScale(1.5, 1.5);
-   // ofTranslate(ofGetWidth()/2, ofGetHeight()/2,-500);
+   
     ofTranslate(0, 0   ,-10*mouseX);
-   // glTranslatef(cloudCentre.x, cloudCentre.y, -100);
 	glBegin(GL_POINTS);
     step=1;
 
@@ -298,6 +233,7 @@ void testApp::gestureOSCmessage(string gestureName, bool gestureIsOn, int nUserN
 void testApp::windowResized(int w, int h){
 }
 
+//send an osc message from the ofxOpenNi ofxLimb data
 //----------------------------------------
 void testApp::jointOSCMessage(ofxLimb * jointName, string jointString, int nUserNum){
     ofxOscMessage m;
@@ -345,6 +281,7 @@ void testApp::jointOSCMessage(ofxLimb * jointName, string jointString, int nUser
         
     }    
 }
+//send an osc message from the my thin user class
 
 //----------------------------------------
 void testApp::userJointOSCMessage(ofPoint jointName, string jointString, int nUserNum){
@@ -387,39 +324,6 @@ void testApp::handOSCMessage(ofxTrackedHand * aHand, string handString, int nHan
     m.addFloatArg(aHand->progPos.z );
     
     sender.sendMessage( m );
-}
-void testApp::drawDebugInfo(){
-    ofSetColor(255, 255, 255);
-    
-	glPushMatrix();
-	glScalef(0.75, 0.75, 0.75);
-    depth.draw(0,0,640,480);
-    depthRangeMask.draw(0, 480, 320, 240);	// can use this with openCV to make masks, find contours etc when not dealing with openNI 'User' like objects
-    
-    if (isTracking) {
-        //draw skeleton
-        user.draw();
-    }
-    
-    drawMasks();
-    ofSetColor(255, 0, 0);
-    for(int i=0;i<kGesture.gestureStates.size();i++){
-        
-       // font.drawString(kGesture.gestureNames[i]+" "+   ofToString(kGesture.gestureStates[i]), ofGetWidth()/2+20, 100+(i*30));
-        
-    }
-    //        //joints are in order 0 rhand , 1 lhand , 2 rfoot, 3 lfoot , 4 head , 5 torso, 6 relbow, 7 lelbow
-    
-    if( user1Joints.size()>0){
-        ofSetColor(255, 0, 0);
-        font.drawString("found joints", ofGetWidth()/2+20,30);    
-        for(int i=0;i<user1Joints.size();i++){
-            ofSetColor(255, 0, 0);
-            ofDrawBitmapString(user1JointNames[i],ofMap(user1Joints[i].x,0,ofGetWidth(),0,640), ofMap(user1Joints[i].y,0,ofGetHeight(),0,480));
-        }
-    }
-    
-    
 }
 //send hand positions over OSC
 void testApp::sendHandInfo(ofxTrackedHand * aHand, int nHandNum) {
